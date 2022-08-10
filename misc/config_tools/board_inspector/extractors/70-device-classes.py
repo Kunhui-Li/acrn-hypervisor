@@ -9,6 +9,7 @@ from extractors.helpers import add_child, get_node
 
 SYS_INPUT_DEVICES_CLASS_PATH = "/sys/class/input/"
 SYS_TTY_DEVICES_CLASS_PATH = "/sys/class/tty/"
+SYS_DISPLAYS_INFO_PATH = "/sys/kernel/debug/dri/0/i915_display_info"
 
 def add_child_with_file_contents(parent_node, tag, filepath, translations = {}):
     try:
@@ -48,9 +49,23 @@ def extract_ttys(device_classes_node):
         add_child(serial_node, "dev_path", f"/dev/{serial_dev}")
         add_child_with_file_contents(serial_node, "type", f"{SYS_TTY_DEVICES_CLASS_PATH}{serial_dev}/type")
 
+def extract_display(device_classes_node):
+    displays_node = add_child(device_classes_node, "displays", None)
+    monitor_ids_regex = re.compile("status: connected")
+    try:
+        with open(SYS_DISPLAYS_INFO_PATH, "r") as f:
+            res = f.read().strip()
+            m = monitor_ids_regex.findall(res)
+    except Exception as e:
+        logging.warning(f"Failed to read the data from {SYS_DISPLAYS_INFO_PATH}: {e}")
+
+    for idx in range(len(m)):
+        add_child(displays_node, "monitor_id", str(idx))
+
 def extract_topology(device_classes_node):
     extract_inputs(device_classes_node)
     extract_ttys(device_classes_node)
+    extract_display(device_classes_node)
 
 def extract(args, board_etree):
     device_classes_node = get_node(board_etree, "//device-classes")
