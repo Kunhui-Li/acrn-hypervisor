@@ -14,4 +14,20 @@
     </xs:annotation>
   </xs:assert>
 
+  <xs:assert test="every $vm in /acrn-config/vm satisfies
+                   count($vm/virtio_devices/gpu[display_type = 'Full screen']/displays/display) &lt;= 4
+                   ">
+    <xs:annotation acrn:severity="error" acrn:report-on="$vm">
+      <xs:documentation>VM "{$vm/name}" support 4 virtual displays at most in the full screen mode.</xs:documentation>
+    </xs:annotation>
+  </xs:assert>
+
+    <xs:assert test="every $vm in /acrn-config/vm satisfies
+                   count($vm/virtio_devices/gpu[display_type = 'Window']/displays/display) &lt;= 2
+                   ">
+    <xs:annotation acrn:severity="error" acrn:report-on="$vm">
+      <xs:documentation>VM "{$vm/name}" support 2 virtual windows at most.</xs:documentation>
+    </xs:annotation>
+  </xs:assert>
+
 </xs:schema>
